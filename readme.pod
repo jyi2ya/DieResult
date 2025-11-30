@@ -1,0 +1,36 @@
+=encoding utf8
+
+a clone of L<https://github.com/rootcause-rs/rootcause>
+
+see example.pl
+
+    jyi-00-rust-dev 16:59 (master) ~/dev/DieResult
+    0 perl -I. example.pl
+    * main example.pl:58
+    |
+    * Application startup failed
+    | main example.pl:51
+    | Environment: development
+    |
+    * main example.pl:43
+    | Config path: /cannot_read_this
+    | Expected format: TOML
+    |
+    * Failed to load application configuration
+    | main example.pl:36
+    |
+    |-* attempt 1
+    | | main example.pl:22
+    | |
+    | * Can't open '/cannot_read_this' with mode '<:utf8': 'No such file or directory' at example.pl line 12
+    |
+    |-* attempt 2
+    | | main example.pl:22
+    | |
+    | * Can't open '/cannot_read_this' with mode '<:utf8': 'No such file or directory' at example.pl line 12
+    |
+    |-* attempt 3
+    | | main example.pl:22
+    | |
+    | * Can't open '/cannot_read_this' with mode '<:utf8': 'No such file or directory' at example.pl line 12
+
