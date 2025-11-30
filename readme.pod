@@ -2,7 +2,7 @@
 
 a clone of L<https://github.com/rootcause-rs/rootcause>
 
-see example.pl
+see example/example.pl
 
     jyi-00-rust-dev 16:59 (master) ~/dev/DieResult
     0 perl -I. example.pl
