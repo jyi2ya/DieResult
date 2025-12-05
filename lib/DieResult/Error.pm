@@ -33,6 +33,10 @@ package DieResult::Error {
             $self->inner->context($context);
             $self
         }
+
+        sub has_errors ($self) {
+            int(@{ $self->inner->cause })
+        }
     };
 
     use overload '""' => \&stringify;
@@ -69,6 +73,7 @@ package DieResult::Error {
 
         my @result;
         push @result, $context if $context;
+        $func //= '[script]';
         push @result, "$func $filename:$line";
         push @result, map { "+ $_" } @attachment;
 
@@ -106,6 +111,10 @@ package DieResult::Error {
     sub stringify {
         my $self = shift;
         join "\n", $self->render;
+    }
+
+    sub to_string ($self) {
+        "$self"
     }
 };
 

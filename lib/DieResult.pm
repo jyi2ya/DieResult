@@ -75,6 +75,14 @@ package DieResult {
             die $self->data;
         }
     }
+
+    sub unwrap_or_else ($self, $else) {
+        if ($self->is_ok) {
+            return $self->array ? @{ $self->data } : $self->data;
+        } else {
+            return $else->($self->data);
+        }
+    }
 };
 
 1;
