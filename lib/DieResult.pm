@@ -6,16 +6,29 @@ use open qw/:std :utf8/;
 utf8::decode($_) for @ARGV;
 
 use Class::Struct 'DieResult' => [
-    array => '$',
     tag => '$', # 'ok' or 'err'
     data => '$',
 ];
 
 package DieResult {
     use DieResult::Error;
-    use Exporter 'import';
+    use Keyword::Simple;
+    use Text::Balanced qw/extract_codeblock/;
 
-    our @EXPORT = qw/wrap/;
+    sub import {
+        Keyword::Simple::define wrap => sub ($ref) {
+            my ($block, $remains) = extract_codeblock($$ref);
+
+            $$ref = <<EOF;
+do { no warnings 'misc'; my \$__dieresult_data = [ eval $block ]; if (my \$__dieresult_err = \$@) { DieResult->new( tag => 'err', data => DieResult::Error->new( cause => \$__dieresult_err, position => DieResult::Error::get_position(),),); } else { DieResult->new( tag => 'ok', data => \$__dieresult_data,); } }
+$remains
+EOF
+        };
+    }
+
+    sub unimport {
+        Keyword::Simple::undefine 'wrap';
+    }
 
     sub is_ok ($self) {
         $self->tag eq 'ok';
@@ -39,27 +52,6 @@ package DieResult {
         $self;
     }
 
-    sub wrap :prototype(&) ($code) {
-        my $wantarray = wantarray;
-        my $data = eval { $wantarray ? [ $code->() ] : scalar($code->()); };
-        if (my $e = $@) {
-            return DieResult->new(
-                array => $wantarray,
-                tag => 'err',
-                data => DieResult::Error->new(
-                    cause => $e,
-                    position => DieResult::Error::get_position(),
-                ),
-            );
-        } else {
-            return DieResult->new(
-                array => $wantarray,
-                tag => 'ok',
-                data => $data,
-            );
-        }
-    }
-
     sub unwrap_err ($self) {
         if ($self->is_ok) {
             die 'failed to unwrap err: is not err';
@@ -70,7 +62,7 @@ package DieResult {
 
     sub unwrap ($self) {
         if ($self->is_ok) {
-            return $self->array ? @{ $self->data } : $self->data;
+            return @{ $self->data };
         } else {
             die $self->data;
         }
@@ -78,7 +70,7 @@ package DieResult {
 
     sub unwrap_or_else ($self, $else) {
         if ($self->is_ok) {
-            return $self->array ? @{ $self->data } : $self->data;
+            return @{ $self->data };
         } else {
             return $else->($self->data);
         }

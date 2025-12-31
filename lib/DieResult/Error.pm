@@ -42,8 +42,8 @@ package DieResult::Error {
     use overload '""' => \&stringify;
 
     sub get_position {
-        my (undef, $file, $line, $func) = caller(1);
-        (undef, undef, undef, $func) = caller(2);
+        my (undef, $file, $line, $func) = caller(0);
+        (undef, undef, undef, $func) = caller(1);
         [ $file, $line, $func ];
     }
 

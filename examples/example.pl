@@ -6,7 +6,7 @@ use autodie ':all';
 use open qw/:std :utf8/;
 utf8::decode($_) for @ARGV;
 
-use DieResult qw/wrap/;
+use DieResult;
 
 sub read_to_string ($path) {
     open my $fh, '<:utf8', $path;
@@ -18,8 +18,10 @@ sub read_file($path) {
     my $collection = DieResult::Error->collection->context('failed to read config file');
 
     for my $retry (1 .. 3) {
-        my $result = (wrap { read_to_string($path) })
+        my $result = do {
+            wrap { read_to_string($path) }
             ->context("attempt $retry");
+        };
 
         if ($result->is_ok) {
             return $result->unwrap;
@@ -32,30 +34,38 @@ sub read_file($path) {
 }
 
 sub load_config($path) {
-    my $content = (wrap { read_file($path) })
+    my $content = do {
+        wrap { read_file($path) }
         ->context("Failed to load application configuration")
         ->unwrap;
+    };
     $content;
 }
 
 sub load_config_with_debug_info($path) {
-    my $content = (wrap { load_config($path) })
+    my $content = do {
+        wrap { load_config($path) }
         ->attach("Config path: $path")
         ->attach("Expected format: TOML")
         ->unwrap;
+    };
     $content;
 }
 
 sub startup($config_path, $environment) {
-    my $config = (wrap { load_config_with_debug_info($config_path) })
+    my $config = do {
+        wrap { load_config_with_debug_info($config_path) }
         ->context("Application startup failed")
         ->attach("Environment: $environment")
         ->unwrap;
+    };
     $config;
 }
 
 sub main {
-    my $err = (wrap { startup('/cannot_read_this', 'development') })->unwrap_err;
+    my $err = do {
+        wrap { startup('/cannot_read_this', 'development') }->unwrap_err;
+    };
     say $err;
 }
 
